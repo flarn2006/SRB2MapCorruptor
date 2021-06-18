@@ -11,10 +11,10 @@ with open('linedefs.txt', 'r') as f:
 		if line != '' and line[0] != '#':
 			linedef_special_pool.append(int(line))
 
-(opts, args) = getopt(sys.argv[1:], 'lsL:S:0:')
+(opts, args) = getopt(sys.argv[1:], 'lsn:L:S:0:')
 
 if len(args) != 2:
-	print(f'Usage: {sys.argv[0]} [-ls] [-L probability] [-S probability] [-0 probability] input.wad output.wad', file=sys.stderr)
+	print(f'Usage: {sys.argv[0]} [-ls] [-n seed] [-L probability] [-S probability] [-0 probability] input.wad output.wad', file=sys.stderr)
 	exit(255)
 
 input_filename = args[0]
@@ -46,6 +46,8 @@ opt_applyto0_prob = 0.
 opt_linedef_special_prob = 0.
 opt_sector_special_prob = 0.
 for (opt, arg) in opts:
+	if opt == '-n':
+		random.seed(arg)
 	if opt == '-0':
 		opt_applyto0_prob = parse_probability_arg(arg)
 	elif opt == '-L':

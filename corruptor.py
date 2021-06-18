@@ -11,17 +11,17 @@ with open('linedefs.txt', 'r') as f:
 		if line != '' and line[0] != '#':
 			linedef_special_pool.append(int(line))
 
-(opts, args) = getopt(sys.argv[1:], 'lsn:L:S:0:')
+(opts, args) = getopt(sys.argv[1:], 'n:l:s:L:S:0:')
 
 if len(args) != 2:
-	print(f'Usage: {sys.argv[0]} [-ls] [-n seed] [-L probability] [-S probability] [-0 probability] input.wad output.wad', file=sys.stderr)
+	print(f'Usage: {sys.argv[0]} [option]... input.wad output.wad', file=sys.stderr)
 	print()
-	print('  -l\t\trandomize linedef tags')
-	print('  -s\t\trandomize sector tags')
-	print('  -n\t\tspecify a seed for the random number generator')
-	print("  -L\t\tspecify probability of randomizing a linedef's special")
-	print("  -S\t\tspecify probability of randomizing a sector's special")
-	print('  -0\t\tspecify probability of changing the tag of a linedef or sector with tag 0')
+	print('  -n seed               specify a seed for the random number generator')
+	print("  -l probability        specify probability of randomizing a linedef's tag")
+	print("  -s probability        specify probability of randomizing a sector's tag")
+	print("  -L probability        specify probability of randomizing a linedef's special")
+	print("  -S probability        specify probability of randomizing a sector's special")
+	print('  -0 probability        specify probability of changing the tag of a linedef or sector with tag 0')
 	print()
 	print('All probabilities are zero by default. Specifying no options will make no changes (and is therefore pointless.)')
 
@@ -50,15 +50,19 @@ def chance(probability: float) -> bool:
 	else:
 		return random.uniform(0,1) < probability
 
-opt_linedef_tags = ('-l', '') in opts
-opt_sector_tags = ('-s', '') in opts
+opt_linedef_tag_prob = 0.
+opt_sector_tag_prob = 0.
 opt_applyto0_prob = 0.
 opt_linedef_special_prob = 0.
 opt_sector_special_prob = 0.
 for (opt, arg) in opts:
 	if opt == '-n':
 		random.seed(arg)
-	if opt == '-0':
+	elif opt == '-l':
+		opt_linedef_tag_prob = parse_probability_arg(arg)
+	elif opt == '-s':
+		opt_sector_tag_prob = parse_probability_arg(arg)
+	elif opt == '-0':
 		opt_applyto0_prob = parse_probability_arg(arg)
 	elif opt == '-L':
 		opt_linedef_special_prob = parse_probability_arg(arg)
@@ -118,7 +122,7 @@ for i in range(len(lumps)):
 		sectors = bytearray(data)
 		n_sectors = len(data) // 26
 		for j in range(n_sectors):
-			if opt_sector_tags:
+			if chance(opt_sector_tag_prob):
 				if sectors[tagslice_st(j)] != b'\0\0' or chance(opt_applyto0_prob):
 					sectors[tagslice_st(j)] = random.choice(tags).to_bytes(2, 'little')
 			if chance(opt_sector_special_prob):
@@ -128,7 +132,7 @@ for i in range(len(lumps)):
 		linedefs = bytearray(data)
 		n_lines = len(data) // 14
 		for j in range(n_lines):
-			if opt_linedef_tags:
+			if chance(opt_linedef_tag_prob):
 				current_tag = int.from_bytes(linedefs[tagslice_lt(j)], 'little', signed=False)
 				current_special = int.from_bytes(linedefs[tagslice_ls(j)], 'little', signed=False)
 				dont_touch_specials = (704, 705, 714, 715)

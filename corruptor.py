@@ -15,6 +15,16 @@ with open('linedefs.txt', 'r') as f:
 
 if len(args) != 2:
 	print(f'Usage: {sys.argv[0]} [-ls] [-n seed] [-L probability] [-S probability] [-0 probability] input.wad output.wad', file=sys.stderr)
+	print()
+	print('  -l\t\trandomize linedef tags')
+	print('  -s\t\trandomize sector tags')
+	print('  -n\t\tspecify a seed for the random number generator')
+	print("  -L\t\tspecify probability of randomizing a linedef's special")
+	print("  -S\t\tspecify probability of randomizing a sector's special")
+	print('  -0\t\tspecify probability of changing the tag of a linedef or sector with tag 0')
+	print()
+	print('All probabilities are zero by default. Specifying no options will make no changes (and is therefore pointless.)')
+
 	exit(255)
 
 input_filename = args[0]

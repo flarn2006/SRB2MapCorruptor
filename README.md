@@ -7,7 +7,7 @@ Note that this program is only compatible with WAD-format archives; there is cur
 
     python corruptor.py [option]... input.wad output.wad
 
-* `-n seed`: Specifies a seed for the random number generator. If this is not specified, the script will not seed the RNG, and Python's default seed-generation behavior will take effect. The seed need not be numeric; any string should work.
+* `-r seed`: Specifies a seed for the random number generator. If this is not specified, the script will not seed the RNG, and Python's default seed-generation behavior will take effect. The seed need not be numeric; any string should work.
 
 * `-l probability`: Specifies the probability of randomizing a linedef's tag. All probability arguments, including this one, range from 0 to 1 inclusive, and default to 0 if not given.
 
@@ -18,3 +18,5 @@ Note that this program is only compatible with WAD-format archives; there is cur
 * `-S probability`: Specifies the probability of randomizing a sector's special value.
 
 * `-0 probability`: Specifies the probability of changing the tag of a linedef or sector whose tag is 0. This is only evaluated for linedefs/sectors that pass the `-l` or `-s` probability check, so the actual probability will be this multiplied by the argument to `-l` or `-s`.
+
+* `-O probability`: Specifies the probability of changing the special of a linedef (not a sector) whose special is 0. Like -L, I recommend keeping this low if you use it at all, since it's likely to create lots of big FOF's that get in the way.

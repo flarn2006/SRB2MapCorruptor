@@ -11,7 +11,7 @@ with open('linedefs.txt', 'r') as f:
 		if line != '' and line[0] != '#':
 			linedef_special_pool.append(int(line))
 
-(opts, args) = getopt(sys.argv[1:], 'n:l:s:L:S:0:')
+(opts, args) = getopt(sys.argv[1:], 'n:l:s:L:S:0:O:')
 
 if len(args) != 2:
 	print(f'Usage: {sys.argv[0]} [option]... input.wad output.wad', file=sys.stderr)
@@ -22,6 +22,7 @@ if len(args) != 2:
 	print("  -L probability        specify probability of randomizing a linedef's special")
 	print("  -S probability        specify probability of randomizing a sector's special")
 	print('  -0 probability        specify probability of changing the tag of a linedef or sector with tag 0')
+	print('  -O probability        specify probability of setting a special for a linedef that has none')
 	print()
 	print('All probabilities are zero by default. Specifying no options will make no changes (and is therefore pointless.)')
 
@@ -55,6 +56,7 @@ opt_sector_tag_prob = 0.
 opt_applyto0_prob = 0.
 opt_linedef_special_prob = 0.
 opt_sector_special_prob = 0.
+opt_special0_prob = 0.
 for (opt, arg) in opts:
 	if opt == '-n':
 		random.seed(arg)
@@ -68,6 +70,8 @@ for (opt, arg) in opts:
 		opt_linedef_special_prob = parse_probability_arg(arg)
 	elif opt == '-S':
 		opt_sector_special_prob = parse_probability_arg(arg)
+	elif opt == '-O':
+		opt_special0_prob = parse_probability_arg(arg)
 
 try:
 	lumps = wad.load(input_filename)
@@ -132,13 +136,13 @@ for i in range(len(lumps)):
 		linedefs = bytearray(data)
 		n_lines = len(data) // 14
 		for j in range(n_lines):
+			current_special = int.from_bytes(linedefs[tagslice_ls(j)], 'little', signed=False)
 			if chance(opt_linedef_tag_prob):
 				current_tag = int.from_bytes(linedefs[tagslice_lt(j)], 'little', signed=False)
-				current_special = int.from_bytes(linedefs[tagslice_ls(j)], 'little', signed=False)
 				dont_touch_specials = (704, 705, 714, 715)
 				if current_special not in dont_touch_specials and (current_tag != 0 or chance(opt_applyto0_prob)):
 					linedefs[tagslice_lt(j)] = random.choice(tags).to_bytes(2, 'little')
-			if chance(opt_linedef_special_prob):
+			if (current_special != 0 or chance(opt_special0_prob)) and chance(opt_linedef_special_prob):
 				linedefs[tagslice_ls(j)] = random.choice(linedef_special_pool).to_bytes(2, 'little')
 		lumps[i] = (name, linedefs)
 

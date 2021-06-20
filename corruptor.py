@@ -11,12 +11,12 @@ with open('linedefs.txt', 'r') as f:
 		if line != '' and line[0] != '#':
 			linedef_special_pool.append(int(line))
 
-(opts, args) = getopt(sys.argv[1:], 'n:l:s:L:S:0:O:')
+(opts, args) = getopt(sys.argv[1:], 'r:l:s:L:S:0:O:')
 
 if len(args) != 2:
 	print(f'Usage: {sys.argv[0]} [option]... input.wad output.wad', file=sys.stderr)
 	print()
-	print('  -n seed               specify a seed for the random number generator')
+	print('  -r seed               specify a seed for the random number generator')
 	print("  -l probability        specify probability of randomizing a linedef's tag")
 	print("  -s probability        specify probability of randomizing a sector's tag")
 	print("  -L probability        specify probability of randomizing a linedef's special")
@@ -51,6 +51,7 @@ def chance(probability: float) -> bool:
 	else:
 		return random.uniform(0,1) < probability
 
+opt_seed = None
 opt_linedef_tag_prob = 0.
 opt_sector_tag_prob = 0.
 opt_applyto0_prob = 0.
@@ -59,7 +60,7 @@ opt_sector_special_prob = 0.
 opt_special0_prob = 0.
 for (opt, arg) in opts:
 	if opt == '-n':
-		random.seed(arg)
+		opt_seed = arg
 	elif opt == '-l':
 		opt_linedef_tag_prob = parse_probability_arg(arg)
 	elif opt == '-s':
@@ -117,6 +118,9 @@ for (name, data) in lumps:
 
 for i in range(len(lumps)):
 	(name, data) = lumps[i]
+	if opt_seed is not None:
+		random.seed(opt_seed)
+
 	if name[:3] == b'MAP' and len(name) == 5:
 		print(f'Processing {name.decode("ascii")}...')
 		tags = tagpools[name]
